@@ -113,6 +113,7 @@ impl Pipeline {
             gl.active_texture(glow::TEXTURE0);
             gl.bind_texture(glow::TEXTURE_2D, Some(self.cache.texture));
 
+            dbg!(&self.current_instances);
             gl.bind_vertex_array(Some(self.vertex_array));
 
             gl.draw_arrays_instanced(
