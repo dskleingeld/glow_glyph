@@ -116,11 +116,14 @@ impl Pipeline {
             dbg!(&self.current_instances);
             gl.bind_vertex_array(Some(self.vertex_array));
 
-            gl.draw_arrays_instanced(
+            // 4 indices make 2 triangles using triangle strip
+            // that forms one square
+            // gl.draw_arrays_instanced(
+            gl.draw_arrays(
                 glow::TRIANGLE_STRIP,
-                0,
-                4,
-                self.current_instances as i32,
+                0, //start index in array
+                4, //number of indices to be renderd // was 1
+                // self.current_instances as i32, 
             );
 
             gl.bind_vertex_array(None);
@@ -156,6 +159,16 @@ impl Pipeline {
     }
 
     pub fn upload(&mut self, gl: &glow::Context, instances: &[Instance]) {
+        //create additional "instances" to handle lower OpenGL
+        let mut instances2 = Vec::new(); 
+        for i in instances {
+            for n in 0..4 {
+                let mut i = i.clone();
+                i.vertex_id = n as f32;
+                instances2.push(i)
+            }
+        }
+
         if instances.is_empty() {
             self.current_instances = 0;
             return;
@@ -180,7 +193,7 @@ impl Pipeline {
             gl.buffer_sub_data_u8_slice(
                 glow::ARRAY_BUFFER,
                 0,
-                bytemuck::cast_slice(instances),
+                bytemuck::cast_slice(&instances2),
             );
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
         }
@@ -206,6 +219,7 @@ pub struct Instance {
     tex_left_top: [f32; 2],
     tex_right_bottom: [f32; 2],
     color: [f32; 4],
+    vertex_id: f32,
 }
 
 unsafe impl bytemuck::Zeroable for Instance {}
@@ -264,6 +278,7 @@ impl Instance {
             tex_left_top: [tex_coords.min.x, tex_coords.max.y],
             tex_right_bottom: [tex_coords.max.x, tex_coords.min.y],
             color: extra.color,
+            vertex_id: 0f32,
         }
     }
 }
@@ -320,23 +335,27 @@ unsafe fn create_instance_buffer(
     gl.bind_buffer(glow::ARRAY_BUFFER, Some(buffer));
     gl.buffer_data_size(
         glow::ARRAY_BUFFER,
-        (size * std::mem::size_of::<Instance>()) as i32,
+        (4*size * std::mem::size_of::<Instance>()) as i32,
         glow::DYNAMIC_DRAW,
     );
 
     let stride = std::mem::size_of::<Instance>() as i32;
 
     gl.enable_vertex_attrib_array(0);
+    // index of vertex attribute, size of attribute (float: 1, vec2: 2 etc)
+    // type, should points be normalized, offset between consecutive 
+    // vertex attributes, offset from start of array
     gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, stride, 0);
-    gl.vertex_attrib_divisor(0, 1);
+    // index of vertex attribute, number of instances between updates of that attribute
+    gl.vertex_attrib_divisor(0, 0);
 
     gl.enable_vertex_attrib_array(1);
     gl.vertex_attrib_pointer_f32(1, 2, glow::FLOAT, false, stride, 4 * 3);
-    gl.vertex_attrib_divisor(1, 1);
+    gl.vertex_attrib_divisor(1, 0);
 
     gl.enable_vertex_attrib_array(2);
     gl.vertex_attrib_pointer_f32(2, 2, glow::FLOAT, false, stride, 4 * (3 + 2));
-    gl.vertex_attrib_divisor(2, 1);
+    gl.vertex_attrib_divisor(2, 0);
 
     gl.enable_vertex_attrib_array(3);
     gl.vertex_attrib_pointer_f32(
@@ -347,7 +366,7 @@ unsafe fn create_instance_buffer(
         stride,
         4 * (3 + 2 + 2),
     );
-    gl.vertex_attrib_divisor(3, 1);
+    gl.vertex_attrib_divisor(3, 0);
 
     gl.enable_vertex_attrib_array(4);
     gl.vertex_attrib_pointer_f32(
@@ -358,7 +377,13 @@ unsafe fn create_instance_buffer(
         stride,
         4 * (3 + 2 + 2 + 2),
     );
-    gl.vertex_attrib_divisor(4, 1);
+    gl.vertex_attrib_divisor(4, 0);
+
+    // added to replace gl_VertexID
+    gl.enable_vertex_attrib_array(5);
+    gl.vertex_attrib_pointer_f32(5, 1, glow::FLOAT, false, stride, 4*(3 + 2 + 2 + 2 + 4));
+    gl.vertex_attrib_divisor(5, 0);
+
 
     gl.bind_vertex_array(None);
     gl.bind_buffer(glow::ARRAY_BUFFER, None);

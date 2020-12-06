@@ -13,6 +13,7 @@ attribute vec2 right_bottom;
 attribute vec2 tex_left_top;
 attribute vec2 tex_right_bottom;
 attribute vec4 color;
+attribute float vertex_id;
 
 varying vec2 f_tex_pos; // out to fragment shader
 varying vec4 f_color; //
@@ -25,28 +26,33 @@ void main() {
     float top = left_top.y;
     float bottom = right_bottom.y;
 
-    /* /1* switch (gl_VertexID) { *1/ */
-    /* if (gl_VertexID == 0) { //TODO replace gl_VertexID with data manually passed to the GPU */
-    /*     /1* case 0: *1/ */
-    /*     pos = vec2(left, top); */
-    /*     f_tex_pos = tex_left_top; */
-    /*         /1* break; *1/ */
-    /* } else if (gl_VertexID == 1) { */
-    /*     /1* case 1: *1/ */
-    /*     pos = vec2(right, top); */
-    /*     f_tex_pos = vec2(tex_right_bottom.x, tex_left_top.y); */
-    /*         /1* break; *1/ */
-    /* } else if (gl_VertexID == 2) { */
-    /*     /1* case 2: *1/ */
-    /*     pos = vec2(left, bottom); */
-    /*     f_tex_pos = vec2(tex_left_top.x, tex_right_bottom.y); */
-    /*         /1* break; *1/ */
-    /* } else { */ 
-    /*     /1* case 3: *1/ */
-    /*     pos = vec2(right, bottom); */
-    /*     f_tex_pos = tex_right_bottom; */
-    /*         /1* break; *1/ */
-    /* } */
+    // The passed data is for one Instance, always square. To draw it we need to generate 4 points
+    // from the two left top and right bottem coords. That happens here. Each instance is drawn 4
+    // times, generating 2 triangles from a 4 long triangle strip. The gl_VertexID increases 
+    // by one for each call. However we do not have gl_VertexID in
+    // OpenGL 1.0 thus we can not share the draw data and need to send it 4 times
+    /* switch (gl_VertexID) { */
+    if (vertex_id < 1.0) { //TODO replace gl_VertexID with data manually passed to the GPU
+        /* case 0: */
+        pos = vec2(left, top);
+        f_tex_pos = tex_left_top;
+            /* break; */
+    } else if (vertex_id < 2.0) {
+        /* case 1: */
+        pos = vec2(right, top);
+        f_tex_pos = vec2(tex_right_bottom.x, tex_left_top.y);
+            /* break; */
+    } else if (vertex_id < 3.0) {
+        /* case 2: */
+        pos = vec2(left, bottom);
+        f_tex_pos = vec2(tex_left_top.x, tex_right_bottom.y);
+            /* break; */
+    } else { 
+        /* case 3: */
+        pos = vec2(right, bottom);
+        f_tex_pos = tex_right_bottom;
+            /* break; */
+    }
 
     f_color = color;
     gl_Position = transform * vec4(pos, left_top.z, 1.0);
