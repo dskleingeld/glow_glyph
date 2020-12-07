@@ -119,12 +119,14 @@ impl Pipeline {
             // 4 indices make 2 triangles using triangle strip
             // that forms one square
             // gl.draw_arrays_instanced(
-            gl.draw_arrays(
-                glow::TRIANGLE_STRIP,
-                0, //start index in array
-                4, //number of indices to be renderd // was 1
-                // self.current_instances as i32, 
-            );
+            for i in 0..self.current_instances {
+                gl.draw_arrays(
+                    glow::TRIANGLE_STRIP,
+                    (i as i32)*4, //start index in array
+                    4, //number of indices to be renderd // was 1
+                    // self.current_instances as i32, 
+                );
+            }
 
             gl.bind_vertex_array(None);
             gl.bind_texture(glow::TEXTURE_2D, None);
@@ -192,7 +194,7 @@ impl Pipeline {
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.instances));
             gl.buffer_sub_data_u8_slice(
                 glow::ARRAY_BUFFER,
-                0,
+                0, // offset
                 bytemuck::cast_slice(&instances2),
             );
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
@@ -342,9 +344,12 @@ unsafe fn create_instance_buffer(
     let stride = std::mem::size_of::<Instance>() as i32;
 
     gl.enable_vertex_attrib_array(0);
-    // index of vertex attribute, size of attribute (float: 1, vec2: 2 etc)
-    // type, should points be normalized, offset between consecutive 
-    // vertex attributes, offset from start of array
+    // index of vertex attribute
+    // size of attribute (float: 1, vec2: 2 etc)
+    // type
+    // should points be normalized, 
+    // offset between consecutive vertex attributes
+    // offset from start of array
     gl.vertex_attrib_pointer_f32(0, 3, glow::FLOAT, false, stride, 0);
     // index of vertex attribute, number of instances between updates of that attribute
     gl.vertex_attrib_divisor(0, 0);
