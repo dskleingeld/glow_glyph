@@ -16,5 +16,6 @@ void main() {
     }
 
     /* Target0 = f_color * vec4(1.0, 1.0, 1.0, alpha); */
-    gl_FragColor = f_color * vec4(1.0, 1.0, 1.0, alpha);
+    /* gl_FragColor = f_color * vec4(1.0, 1.0, 1.0, alpha); */
+    gl_FragColor = f_color * vec4(1.0, 0.0, 0.0, 1.0);
 }

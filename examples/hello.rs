@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     screen_position: (30.0, 90.0),
                     bounds: (size.width as f32, size.height as f32),
                     text: vec![Text::default()
-                        .with_text("Hello glow_glyph!")
+                        .with_text("Hello glow_glyph, hello how are you this is big text test!")
                         .with_color([1.0, 1.0, 1.0, 1.0])
                         .with_scale(40.0)],
                     ..Section::default()
