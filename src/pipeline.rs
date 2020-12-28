@@ -93,9 +93,10 @@ impl Pipeline {
             gl.bind_vertex_array(Some(self.vertex_array));
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.buffer));
 
-            // gl.enable_vertex_attrib_array(1);
-            // gl.enable_vertex_attrib_array(2);
             gl.enable_vertex_attrib_array(0);
+            gl.enable_vertex_attrib_array(1);
+            gl.enable_vertex_attrib_array(2);
+
             gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
             // // Starting from vertex 0; 4 vertices total -> 2 triangles
             // // one rectangular plane
@@ -104,8 +105,8 @@ impl Pipeline {
             //     gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 3);
             // }
             gl.disable_vertex_attrib_array(0);
-            // gl.disable_vertex_attrib_array(1);
-            // gl.disable_vertex_attrib_array(2);
+            gl.disable_vertex_attrib_array(1);
+            gl.disable_vertex_attrib_array(2);
 
             gl.bind_texture(glow::TEXTURE_2D, None);
         }
@@ -194,11 +195,11 @@ impl Pipeline {
     }
 }
 
-const TRIANGLE: [f32; 12] = [
-     -0.5, 0.5, 0.0,
-     0.5, 0.5, 0.0,
-     -0.5, -0.5, 0.0,
-     0.5, -0.5, 0.0,
+const TRIANGLE: [f32; 36] = [
+     -0.5, 0.5, 0.0,       -0.5,  0.5,     0.0, 1.0, 1.0, 1.0,
+     0.5, 0.5, 0.0,         0.5,  0.5,     1.0, 1.0, 1.0, 1.0,
+     -0.5, -0.5, 0.0,      -0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
+     0.5, -0.5, 0.0,        0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
 ];
 
 // Helpers
@@ -370,30 +371,31 @@ unsafe fn create_instance_buffer(
         // std::mem::size_of::<Instance>() as i32,
         glow::DYNAMIC_DRAW);
 
+    let stride = (3+2+4)*std::mem::size_of::<f32>() as i32;
     gl.enable_vertex_attrib_array(0);
     gl.vertex_attrib_pointer_f32(
         0, //attribute 0
         3, //size 
         glow::FLOAT, //type
         false, //normalized
-        0, //stride
+        stride,
         0); //offset from start of buffer
-    // gl.enable_vertex_attrib_array(1);
-    // gl.vertex_attrib_pointer_f32(
-    //     1, //attribute 0
-    //     2, //size 
-    //     glow::FLOAT, //type
-    //     false, //normalized
-    //     0, //stride
-    //     3); //offset from start of buffer
-    // gl.enable_vertex_attrib_array(2);
-    // gl.vertex_attrib_pointer_f32(
-    //     2, //attribute 0
-    //     4, //size 
-    //     glow::FLOAT, //type
-    //     false, //normalized
-    //     0, //stride
-    //     3+2); //offset from start of buffer
+    gl.enable_vertex_attrib_array(1);
+    gl.vertex_attrib_pointer_f32(
+        1, //attribute 0
+        2, //size 
+        glow::FLOAT, //type
+        false, //normalized
+        stride,
+        3*std::mem::size_of::<f32>() as i32); //offset from start of buffer
+    gl.enable_vertex_attrib_array(2);
+    gl.vertex_attrib_pointer_f32(
+        2, //attribute 0
+        4, //size 
+        glow::FLOAT, //type
+        false, //normalized
+        stride,
+        (3+2)*std::mem::size_of::<f32>() as i32); //offset from start of buffer
 
     gl.bind_vertex_array(None);
     gl.bind_buffer(glow::ARRAY_BUFFER, None);
