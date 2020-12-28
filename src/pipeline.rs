@@ -77,13 +77,13 @@ impl Pipeline {
     ) {
         // TODO this seems to be where things start going invisible
         if self.current_transform != transform {
-        //     unsafe {
-        //         gl.uniform_matrix_4_f32_slice(
-        //             Some(&self.transform),
-        //             false,
-        //             &transform,
-        //         );
-        //     }
+            unsafe {
+                gl.uniform_matrix_4_f32_slice(
+                    Some(&self.transform),
+                    false,
+                    &transform,
+                );
+            }
             self.current_transform = transform;
         }
 
@@ -97,13 +97,11 @@ impl Pipeline {
             gl.enable_vertex_attrib_array(1);
             gl.enable_vertex_attrib_array(2);
 
-            gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
-            // // Starting from vertex 0; 4 vertices total -> 2 triangles
-            // // one rectangular plane
-            // for i in 0..self.current_instances as i32 {
-            //     // gl.draw_arrays(glow::TRIANGLE_STRIP, i*4, 4);
-            //     gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 3);
-            // }
+            // Starting from vertex 0; 4 vertices total -> 2 triangles
+            // one rectangular plane
+            for i in 0..self.current_instances as i32 {
+                gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
+            }
             gl.disable_vertex_attrib_array(0);
             gl.disable_vertex_attrib_array(1);
             gl.disable_vertex_attrib_array(2);
@@ -138,55 +136,60 @@ impl Pipeline {
     }
 
     pub fn upload(&mut self, gl: &glow::Context, instances: &[Instance]) {
-        // dbg!(instances);
+// const TRIANGLE: [f32; 36] = [
+//      -0.5, 0.5, 0.0,       -0.5,  0.5,     0.0, 1.0, 1.0, 1.0,
+//      0.5, 0.5, 0.0,         0.5,  0.5,     1.0, 1.0, 1.0, 1.0,
+//      -0.5, -0.5, 0.0,      -0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
+//      0.5, -0.5, 0.0,        0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
+// ];
         // let instances = [[
         //     Draw {
-        //         vertex: [0.0,1.0,0.0],
-        //         tex_coord: [0.0,1.0],
+        //         vertex: [-0.5,0.5,0.0],
+        //         tex_coord: [-0.5,0.5],
+        //         color: [0.0,1.0,1.0,1.0],
+        //     },
+        //     Draw {
+        //         vertex: [0.5,0.5,0.0],
+        //         tex_coord: [0.5,0.5],
         //         color: [1.0,1.0,1.0,1.0],
         //     },
         //     Draw {
-        //         vertex: [0.0,0.0,0.0],
-        //         tex_coord: [0.0,0.0],
+        //         vertex: [-0.5,-0.5,0.0],
+        //         tex_coord: [-0.5,-0.5],
         //         color: [1.0,1.0,1.0,1.0],
         //     },
         //     Draw {
-        //         vertex: [1.0,1.0,0.0],
-        //         tex_coord: [1.0,1.0],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [1.0,0.0,0.0],
-        //         tex_coord: [1.0,0.0],
+        //         vertex: [0.5,-0.5,0.0],
+        //         tex_coord: [0.5,-0.5],
         //         color: [1.0,1.0,1.0,1.0],
         //     },
         // ]];
 
-        // if instances.is_empty() {
-        //     self.current_instances = 0;
-        //     return;
-        // }
+        if instances.is_empty() {
+            self.current_instances = 0;
+            return;
+        }
 
-        // if instances.len() > self.supported_instances {
-        //     unsafe {
-        //         gl.delete_buffer(self.buffer);
-        //         gl.delete_vertex_array(self.vertex_array);
-        //     }
+        if instances.len() > self.supported_instances {
+            unsafe {
+                gl.delete_buffer(self.buffer);
+                gl.delete_vertex_array(self.vertex_array);
+            }
 
-        //     let (new_vertex_array, new_instances) =
-        //         unsafe { create_instance_buffer(gl, instances.len()) };
+            let (new_vertex_array, new_instances) =
+                unsafe { create_instance_buffer(gl, instances.len()) };
 
-        //     self.vertex_array = new_vertex_array;
-        //     self.buffer = new_instances;
-        //     self.supported_instances = instances.len();
-        // }
+            self.vertex_array = new_vertex_array;
+            self.buffer = new_instances;
+            self.supported_instances = instances.len();
+        }
 
         unsafe {
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.buffer));
             gl.buffer_sub_data_u8_slice(
                 glow::ARRAY_BUFFER,
                 0, // offset
-                bytemuck::cast_slice(&TRIANGLE),
+                bytemuck::cast_slice(&instances),
             );
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
         }
@@ -195,12 +198,6 @@ impl Pipeline {
     }
 }
 
-const TRIANGLE: [f32; 36] = [
-     -0.5, 0.5, 0.0,       -0.5,  0.5,     0.0, 1.0, 1.0, 1.0,
-     0.5, 0.5, 0.0,         0.5,  0.5,     1.0, 1.0, 1.0, 1.0,
-     -0.5, -0.5, 0.0,      -0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
-     0.5, -0.5, 0.0,        0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
-];
 
 // Helpers
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -350,7 +347,7 @@ unsafe fn create_program(
 
 unsafe fn create_instance_buffer(
     gl: &glow::Context,
-    _size: usize,
+    size: usize,
 ) -> (
     <glow::Context as HasContext>::VertexArray,
     <glow::Context as HasContext>::Buffer,
@@ -367,11 +364,10 @@ unsafe fn create_instance_buffer(
 
     gl.buffer_data_size(
         glow::ARRAY_BUFFER,
-        std::mem::size_of_val(&TRIANGLE) as i32,
-        // std::mem::size_of::<Instance>() as i32,
+        (size*std::mem::size_of::<Instance>()) as i32,
         glow::DYNAMIC_DRAW);
 
-    let stride = (3+2+4)*std::mem::size_of::<f32>() as i32;
+    let stride = std::mem::size_of::<Draw>() as i32;
     gl.enable_vertex_attrib_array(0);
     gl.vertex_attrib_pointer_f32(
         0, //attribute 0
