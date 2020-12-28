@@ -10,6 +10,9 @@ repository = "https://github.com/hecrj/glow_glyph"
 documentation = "https://docs.rs/glow_glyph"
 readme = "README.md"
 
+[features]
+OpenGL2ES = [] # support OpenGL 2.0 ES, removes support for OpenGL 3 or higher 
+
 [dependencies]
 glow = "0.6"
 glyph_brush = "0.7"

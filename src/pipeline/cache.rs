@@ -35,10 +35,11 @@ impl Cache {
                 glow::LINEAR as i32,
             );
 
+            #[cfg(not(feature = "OpenGL2ES"))]
             gl.tex_image_2d(
                 glow::TEXTURE_2D,
                 0,
-                glow::R8 as i32,
+                glow::RED as i32,
                 width as i32,
                 height as i32,
                 0,
@@ -46,6 +47,19 @@ impl Cache {
                 glow::UNSIGNED_BYTE,
                 None,
             );
+            #[cfg(feature = "OpenGL2ES")]
+            gl.tex_image_2d(
+                glow::TEXTURE_2D,
+                0,
+                glow::ALPHA as i32,
+                width as i32,
+                height as i32,
+                0,
+                glow::ALPHA,
+                glow::UNSIGNED_BYTE,
+                None,
+            );
+
             gl.bind_texture(glow::TEXTURE_2D, None);
 
             handle
@@ -66,6 +80,7 @@ impl Cache {
 
         gl.bind_texture(glow::TEXTURE_2D, Some(self.texture));
 
+        #[cfg(not(feature = "OpenGL2ES"))]
         gl.tex_sub_image_2d(
             glow::TEXTURE_2D,
             0,
@@ -74,6 +89,18 @@ impl Cache {
             i32::from(width),
             i32::from(height),
             glow::RED,
+            glow::UNSIGNED_BYTE,
+            glow::PixelUnpackData::Slice(data),
+        );
+        #[cfg(feature = "OpenGL2ES")]
+        gl.tex_sub_image_2d(
+            glow::TEXTURE_2D,
+            0,
+            i32::from(offset_x),
+            i32::from(offset_y),
+            i32::from(width),
+            i32::from(height),
+            glow::ALPHA,
             glow::UNSIGNED_BYTE,
             glow::PixelUnpackData::Slice(data),
         );
