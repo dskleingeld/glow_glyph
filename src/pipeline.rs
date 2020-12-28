@@ -77,7 +77,6 @@ impl Pipeline {
         transform: [f32; 16],
         region: Option<Region>,
     ) {
-        // TODO this seems to be where things start going invisible
         if self.current_transform != transform {
             unsafe {
                 gl.uniform_matrix_4_f32_slice(
@@ -95,19 +94,12 @@ impl Pipeline {
             gl.bind_vertex_array(Some(self.vertex_array));
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.buffer));
 
-            gl.enable_vertex_attrib_array(0);
-            gl.enable_vertex_attrib_array(1);
-            gl.enable_vertex_attrib_array(2);
-
             // Starting from vertex 0; 4 vertices total -> 2 triangles
             // one rectangular plane
             for i in 0..self.current_instances as i32 {
-                gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
+                gl.draw_arrays(glow::TRIANGLE_STRIP, 4*i, 4);
             }
-            gl.disable_vertex_attrib_array(0);
-            gl.disable_vertex_attrib_array(1);
-            gl.disable_vertex_attrib_array(2);
-
+            gl.bind_vertex_array(None);
             gl.bind_texture(glow::TEXTURE_2D, None);
         }
     }
@@ -185,7 +177,7 @@ impl Pipeline {
             gl.buffer_sub_data_u8_slice(
                 glow::ARRAY_BUFFER,
                 0, // offset
-                bytemuck::cast_slice(&instances),
+                bytemuck::cast_slice(instances),
             );
             gl.bind_buffer(glow::ARRAY_BUFFER, None);
         }
