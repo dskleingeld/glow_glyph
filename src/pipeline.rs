@@ -43,13 +43,13 @@ impl Pipeline {
             gl.get_uniform_location(program, "transform")
                 .expect("Get transform location")
         };
-        // let sampler = unsafe {
-        //     gl.get_uniform_location(program, "font_sampler")
-        //         .expect("Get sampler location")
-        // };
+        let sampler = unsafe {
+            gl.get_uniform_location(program, "font_sampler")
+                .expect("Get sampler location")
+        };
 
         unsafe {
-            // gl.uniform_1_i32(Some(&sampler), 0);
+            gl.uniform_1_i32(Some(&sampler), 0);
             gl.uniform_matrix_4_f32_slice(
                 Some(&transform),
                 false,
@@ -88,15 +88,15 @@ impl Pipeline {
         }
 
         unsafe {
-            // gl.active_texture(glow::TEXTURE0);
-            // gl.bind_texture(glow::TEXTURE_2D, Some(self.cache.texture));
+            gl.active_texture(glow::TEXTURE0);
+            gl.bind_texture(glow::TEXTURE_2D, Some(self.cache.texture));
             gl.bind_vertex_array(Some(self.vertex_array));
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.buffer));
 
             // gl.enable_vertex_attrib_array(1);
             // gl.enable_vertex_attrib_array(2);
             gl.enable_vertex_attrib_array(0);
-            gl.draw_arrays(glow::TRIANGLES, 0, 3);
+            gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
             // // Starting from vertex 0; 4 vertices total -> 2 triangles
             // // one rectangular plane
             // for i in 0..self.current_instances as i32 {
@@ -107,7 +107,7 @@ impl Pipeline {
             // gl.disable_vertex_attrib_array(1);
             // gl.disable_vertex_attrib_array(2);
 
-            // gl.bind_texture(glow::TEXTURE_2D, None);
+            gl.bind_texture(glow::TEXTURE_2D, None);
         }
     }
 
@@ -194,10 +194,11 @@ impl Pipeline {
     }
 }
 
-const TRIANGLE: [f32; 9] = [
-     0.0, 1.0, 0.0,
-     1.0, 0.0, 0.0,
-     1.0, 1.0, 0.0,
+const TRIANGLE: [f32; 12] = [
+     -0.5, 0.5, 0.0,
+     0.5, 0.5, 0.0,
+     -0.5, -0.5, 0.0,
+     0.5, -0.5, 0.0,
 ];
 
 // Helpers
