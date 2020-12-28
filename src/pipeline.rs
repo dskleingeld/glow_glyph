@@ -77,13 +77,13 @@ impl Pipeline {
     ) {
         // TODO this seems to be where things start going invisible
         if self.current_transform != transform {
-            unsafe {
-                gl.uniform_matrix_4_f32_slice(
-                    Some(&self.transform),
-                    false,
-                    &transform,
-                );
-            }
+            // unsafe {
+            //     gl.uniform_matrix_4_f32_slice(
+            //         Some(&self.transform),
+            //         false,
+            //         &transform,
+            //     );
+            // }
             self.current_transform = transform;
         }
 
@@ -142,28 +142,28 @@ impl Pipeline {
 //      -0.5, -0.5, 0.0,      -0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
 //      0.5, -0.5, 0.0,        0.5, -0.5,     1.0, 1.0, 1.0, 1.0,
 // ];
-        // let instances = [[
-        //     Draw {
-        //         vertex: [-0.5,0.5,0.0],
-        //         tex_coord: [-0.5,0.5],
-        //         color: [0.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [0.5,0.5,0.0],
-        //         tex_coord: [0.5,0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [-0.5,-0.5,0.0],
-        //         tex_coord: [-0.5,-0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [0.5,-0.5,0.0],
-        //         tex_coord: [0.5,-0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        // ]];
+        let instances = [[
+            Draw {
+                vertex: [-0.5,0.5,0.0],
+                tex_coord: [-0.5,0.5],
+                color: [0.0,1.0,1.0,1.0],
+            },
+            Draw {
+                vertex: [0.5,0.5,0.0],
+                tex_coord: [0.5,0.5],
+                color: [1.0,1.0,1.0,1.0],
+            },
+            Draw {
+                vertex: [-0.5,-0.5,0.0],
+                tex_coord: [-0.5,-0.5],
+                color: [1.0,1.0,1.0,1.0],
+            },
+            Draw {
+                vertex: [0.5,-0.5,0.0],
+                tex_coord: [0.5,-0.5],
+                color: [1.0,1.0,1.0,1.0],
+            },
+        ]];
 
         if instances.is_empty() {
             self.current_instances = 0;
