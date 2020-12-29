@@ -51,12 +51,14 @@ impl Pipeline {
         };
 
         unsafe {
+            gl.use_program(Some(program));
             gl.uniform_1_i32(Some(&sampler), 0);
             gl.uniform_matrix_4_f32_slice(
                 Some(&transform),
                 false,
                 &IDENTITY_MATRIX,
             );
+            gl.use_program(None);
         }
 
         Pipeline {
@@ -77,6 +79,11 @@ impl Pipeline {
         transform: [f32; 16],
         region: Option<Region>,
     ) {
+        unsafe {
+            gl.use_program(Some(self.program));
+        }
+
+
         if self.current_transform != transform {
             unsafe {
                 gl.uniform_matrix_4_f32_slice(
@@ -112,6 +119,7 @@ impl Pipeline {
             gl.bind_vertex_array(None);
             gl.bind_texture(glow::TEXTURE_2D, None);
             gl.disable(glow::SCISSOR_TEST);
+            gl.use_program(None);
         }
     }
 
@@ -315,8 +323,6 @@ unsafe fn create_program(
         gl.detach_shader(program, shader);
         gl.delete_shader(shader);
     }
-    gl.use_program(Some(program));
-    gl.clear_color(0.1, 0.2, 0.3, 1.0);
 
     program
 }
