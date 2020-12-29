@@ -89,6 +89,16 @@ impl Pipeline {
         }
 
         unsafe {
+            if let Some(region) = region {
+                gl.enable(glow::SCISSOR_TEST);
+                gl.scissor(
+                    region.x as i32, 
+                    region.y as i32, 
+                    region.width as i32, 
+                    region.height as i32
+                );
+            }
+
             gl.active_texture(glow::TEXTURE0);
             gl.bind_texture(glow::TEXTURE_2D, Some(self.cache.texture));
             gl.bind_vertex_array(Some(self.vertex_array));
@@ -101,6 +111,7 @@ impl Pipeline {
             }
             gl.bind_vertex_array(None);
             gl.bind_texture(glow::TEXTURE_2D, None);
+            gl.disable(glow::SCISSOR_TEST);
         }
     }
 
@@ -130,28 +141,6 @@ impl Pipeline {
     }
 
     pub fn upload(&mut self, gl: &glow::Context, instances: &[Instance]) {
-        // let instances = [[
-        //     Draw {
-        //         vertex: [-0.5,0.5,0.0],
-        //         tex_coord: [-0.5,0.5],
-        //         color: [0.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [0.5,0.5,0.0],
-        //         tex_coord: [0.5,0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [-0.5,-0.5,0.0],
-        //         tex_coord: [-0.5,-0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        //     Draw {
-        //         vertex: [0.5,-0.5,0.0],
-        //         tex_coord: [0.5,-0.5],
-        //         color: [1.0,1.0,1.0,1.0],
-        //     },
-        // ]];
 
         if instances.is_empty() {
             self.current_instances = 0;
